@@ -85,12 +85,12 @@
                 <span class="audio__label"><b>Аудиогид</b><small>≈ ${mins} мин</small></span>
                 <span class="audio__wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
               </button>
-              <button class="switch" data-i="${i}" aria-label="Переключить вид">
+              <button class="switch" data-i="${i}" aria-label="Переключить вид: сверху или 3D">
                 <span class="switch__opt on" data-v="space">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10l6-6 4 4-6 6zM14 14l6 6M10 14l-6 6M17 7l3-3"/></svg>Космос
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg>Сверху
                 </span>
-                <span class="switch__opt" data-v="ground">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 8v7M9 21l3-6 3 6M8 11h8"/></svg>С земли
+                <span class="switch__opt" data-v="orbit">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>3D
                 </span>
                 <span class="switch__knob" aria-hidden="true"></span>
               </button>
@@ -106,6 +106,51 @@
 
     $('rail').innerHTML = STOPS.map((s, i) =>
       `<a href="#stop-${i + 1}" data-i="${i}"><span>${s.name}</span><i>${pad(i + 1)}</i></a>`).join('');
+  }
+
+  // ---------- План поездки ----------
+  const TRIP_ICON = {
+    town: '<svg viewBox="0 0 24 24"><path d="M4 21V9l5-3v15M9 21V4l7 4v13M16 21v-9l4 2v7M3 21h18"/></svg>',
+    sight: '<svg viewBox="0 0 24 24"><path d="M6 21h12M8 21v-7h8v7M7 14l5-9 5 9"/></svg>',
+    night: '<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+  };
+  function buildTrip() {
+    const T = TRIP;
+    $('tripCol').innerHTML = `
+      <div class="trip__card trip__intro" data-scene="trip" data-day="all">
+        <p class="eyebrow">Для путешественников</p>
+        <h2>План поездки<br><em>к четырём геоглифам</em></h2>
+        <p class="trip__lead">Готовый маршрут на два дня: старт и финиш в Аркалыке, ночлег в Амангельды. Нажмите на шаг — карта покажет это место.</p>
+        <div class="trip__stats">${T.summary.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+        <div class="trip__legend">
+          <span><i class="lg lg--d1"></i>День 1</span><span><i class="lg lg--d2"></i>День 2</span>
+          <span><i class="lg lg--road"></i>дорога</span><span><i class="lg lg--track"></i>грунтовка, брод</span>
+        </div>
+      </div>
+      ${T.days.map(d => `
+      <article class="trip__card trip__day trip__day--${d.n}" data-scene="trip" data-day="${d.n}">
+        <header><span class="trip__daynum">День ${d.n}</span><span class="trip__km">${d.km}</span></header>
+        <h3>${d.title}</h3>
+        <ol class="trip__steps">
+          ${d.steps.map(st => `
+          <li class="st st--${st.kind}">
+            <button data-at="${st.at.join(',')}" data-zoom="${st.kind === 'glyph' ? 15 : 12}">
+              <span class="st__dot">${st.kind === 'glyph' ? pad(st.stop + 1) : TRIP_ICON[st.kind]}</span>
+              <span class="st__body"><b>${st.name}</b><small>${st.note}</small></span>
+              ${st.km ? `<span class="st__km">${st.km}</span>` : ''}
+            </button>
+          </li>`).join('')}
+        </ol>
+      </article>`).join('')}
+      <div class="trip__card trip__tips" data-scene="trip" data-day="all">
+        <h3>Полезно знать</h3>
+        <div class="tips">${T.tips.map(([h, t]) => `<div class="tip"><b>${h}</b><p>${t}</p></div>`).join('')}</div>
+        <p class="trip__source">${T.source}</p>
+      </div>`;
+    $('tripCol').addEventListener('click', e => {
+      const b = e.target.closest('button[data-at]');
+      if (b && worldOk) World.flyToPlace(b.dataset.at.split(',').map(Number), +b.dataset.zoom);
+    });
   }
 
   // ---------- Список маршрута (точки рисует фоновая карта) ----------
@@ -150,6 +195,7 @@
     stopSpeech();
     if (sc === 'hero') { World.showHero(); $('hudName').textContent = 'Земля · вид из космоса'; $('hudCoords').textContent = '48° N · 58° E'; }
     else if (sc === 'intro') { World.showIntro(); $('hudName').textContent = 'Казахстан'; $('hudCoords').textContent = 'Тургайская степь · 50.3° N · 65.4° E'; }
+    else if (sc === 'trip') { World.showTrip(el.dataset.day); $('hudName').textContent = 'План поездки'; $('hudCoords').textContent = 'Аркалык · Амангельды'; }
     else if (sc === 'route') { World.showRoute(); $('hudName').textContent = 'Маршрут экскурсии'; $('hudCoords').textContent = 'Костанайская область'; }
     else World.pause(true);
   }
@@ -173,7 +219,7 @@
 
   // ---------- Переключатель вида ----------
   function resetSwitch(sw) {
-    document.body.classList.remove('view-ground');
+    document.body.classList.remove('view-3d');
     sw.classList.remove('ground');
     sw.querySelectorAll('.switch__opt').forEach(o => o.classList.toggle('on', o.dataset.v === 'space'));
   }
@@ -182,8 +228,8 @@
     const sw = e.target.closest('.switch');
     if (!sw || !worldOk) return;
     const v = World.toggleView();
-    sw.classList.toggle('ground', v === 'ground');
-    document.body.classList.toggle('view-ground', v === 'ground');
+    sw.classList.toggle('ground', v === 'orbit');
+    document.body.classList.toggle('view-3d', v === 'orbit');
     sw.querySelectorAll('.switch__opt').forEach(o => o.classList.toggle('on', o.dataset.v === v));
   });
 
@@ -198,6 +244,21 @@
     b.classList.toggle('off', !figOn);
     b.querySelector('span').textContent = figOn ? 'Скрыть рисунок' : 'Показать рисунок';
   });
+
+  // ---------- Свободный просмотр ----------
+  function setExplore(on) {
+    if (!worldOk) return;
+    document.documentElement.classList.toggle('exploring', on);
+    document.body.classList.toggle('exploring', on);
+    const idx = World.explore(on);
+    if (!on && idx >= 0 && idx !== activeStop) go(idx);
+  }
+  $('exploreBtn').addEventListener('click', () => setExplore(true));
+  $('exploreExit').addEventListener('click', () => setExplore(false));
+  addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('exploring')) setExplore(false); });
+
+  // ---------- Поворот в 3D ----------
+  document.querySelectorAll('[data-rot]').forEach(b => b.addEventListener('click', () => { if (worldOk) World.rotate(+b.dataset.rot); }));
 
   // ---------- Аудиогид ----------
   let playing = null;
@@ -303,6 +364,7 @@
   // ---------- Запуск ----------
   buildChapters();
   buildRoute();
+  buildTrip();
   buildQuiz();
   reveal();
 
@@ -312,6 +374,7 @@
       onReady() {
         worldOk = true;
         World.setPins(STOPS, go);
+        World.setTrip(TRIP);
         setTimeout(() => World.prefetchAll(STOPS), 1500);
         if (sceneEl) applyScene(sceneEl);
       },
