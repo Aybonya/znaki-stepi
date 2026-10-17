@@ -8,6 +8,9 @@
   const S = i => I18N.pick(STOPS[i]);
   const stopsL = () => STOPS.map((_, i) => S(i));
   const placesL = () => TRIP.places.map(I18N.pick);
+  // Записи аудиогида — Ogg Opus; старые Safari его не играют, там остаётся синтезатор речи
+  const canOgg = !!document.createElement('audio').canPlayType('audio/ogg; codecs=opus');
+  const recOf = s => (canOgg && s.audioSrc) || '';
 
   // Маленькая схема фигуры для шапки панели — по той же геометрии, что и рисунок на снимке
   const ICON_ROT = { ushtogay: 28, swastika: 0, shili: -15, ashutasty: -3 };
@@ -49,6 +52,7 @@
     const box = $('chapters'), n = STOPS.length;
     box.innerHTML = stopsL().map((s, i) => {
       const mins = Math.max(1, Math.round(s.audio.split(/\s+/).length / 120));
+      const dur = recOf(s) ? s.audioDur : `≈ ${mins} ${t('min')}`;
       return `
       <section class="chapter" id="stop-${i + 1}" data-scene="stop" data-i="${i}">
         <div class="wrap chapter__wrap">
@@ -87,7 +91,7 @@
                   <svg viewBox="0 0 24 24" class="i-play"><path d="M8 5v14l11-7z"/></svg>
                   <svg viewBox="0 0 24 24" class="i-stop"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
                 </span>
-                <span class="audio__label"><b>${t('audio')}</b><small>≈ ${mins} ${t('min')}</small></span>
+                <span class="audio__label"><b>${t('audio')}</b><small>${dur}</small></span>
                 <span class="audio__wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
               </button>
               <button class="switch" data-i="${i}" aria-label="${t('switchAria')}">
@@ -196,7 +200,6 @@
       activeStop = i;
       stopSpeech();
       World.showStop(STOPS[i]);
-      document.querySelectorAll('.switch').forEach(resetSwitch);
       return;
     }
     activeStop = -1;
@@ -230,17 +233,9 @@
   }
 
   // ---------- Переключатель вида ----------
-  function setSwitch(sw, v) {
-    sw.classList.toggle('ground', v === 'orbit');
-    document.body.classList.toggle('view-3d', v === 'orbit');
-    sw.querySelectorAll('.switch__opt').forEach(o => o.classList.toggle('on', o.dataset.v === v));
-  }
-  const resetSwitch = sw => setSwitch(sw, 'space');
-
+  // Кнопка 3D открывает свободный просмотр: наклон, вращение и приближение карты
   document.addEventListener('click', e => {
-    const sw = e.target.closest('.switch');
-    if (!sw || !worldOk) return;
-    setSwitch(sw, World.toggleView());
+    if (e.target.closest('.switch')) setExplore(true);
   });
 
   // ---------- Показать / скрыть рисунок поверх снимка ----------
@@ -256,7 +251,7 @@
   });
   const figLabel = () => { $('figToggle').querySelector('span').textContent = t(figOn ? 'figHide' : 'figShow'); };
 
-  // ---------- Свободный просмотр ----------
+  // ---------- 3D (свободный просмотр) ----------
   function setExplore(on) {
     if (!worldOk) return;
     document.documentElement.classList.toggle('exploring', on);
@@ -264,15 +259,14 @@
     const idx = World.explore(on);
     if (!on && idx >= 0 && idx !== activeStop) go(idx);
   }
-  $('exploreBtn').addEventListener('click', () => setExplore(true));
   $('exploreExit').addEventListener('click', () => setExplore(false));
   addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('exploring')) setExplore(false); });
 
-  // ---------- Поворот в 3D ----------
-  document.querySelectorAll('[data-rot]').forEach(b => b.addEventListener('click', () => { if (worldOk) World.rotate(+b.dataset.rot); }));
-
   // ---------- Аудиогид ----------
   let playing = null;
+  const player = new Audio();
+  player.preload = 'none';
+  player.onended = () => stopSpeech();
 
   function voiceFor(lang) {
     const vs = speechSynthesis.getVoices(), re = new RegExp('^' + lang, 'i');
@@ -281,6 +275,7 @@
 
   function stopSpeech() {
     if ('speechSynthesis' in window) speechSynthesis.cancel();
+    player.pause();
     if (playing) playing.classList.remove('playing');
     playing = null;
   }
@@ -288,10 +283,18 @@
   document.addEventListener('click', e => {
     const btn = e.target.closest('.audio');
     if (!btn) return;
-    if (!('speechSynthesis' in window)) { btn.querySelector('small').textContent = t('audioNo'); return; }
     if (playing === btn) { stopSpeech(); return; }
     stopSpeech();
-    const i = +btn.dataset.i;
+    const i = +btn.dataset.i, rec = recOf(S(i));
+    if (rec) {
+      player.src = rec;
+      player.currentTime = 0;
+      player.play().catch(() => { if (playing === btn) stopSpeech(); });
+      btn.classList.add('playing');
+      playing = btn;
+      return;
+    }
+    if (!('speechSynthesis' in window)) { btn.querySelector('small').textContent = t('audioNo'); return; }
     let text = S(i).audio, lang = I18N.lang, v = voiceFor(lang);
     // Казахского голоса в браузере может не быть — тогда гид читает русский текст
     if (!v && lang === 'kk') {
@@ -393,7 +396,6 @@
     render();
     if (!worldOk) return;
     World.relabel(stopsL(), placesL());
-    if (World.getView() === 'orbit') document.querySelectorAll('.switch').forEach(sw => setSwitch(sw, 'orbit'));
     if (sceneEl) applyScene(sceneEl);
   });
 

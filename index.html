@@ -44,11 +44,7 @@
     <span>Скрыть рисунок</span>
   </button>
 
-  <!-- Свободный просмотр карты -->
-  <button class="explore-btn" id="exploreBtn" data-i18n-title="explore.title" title="Вращать, наклонять и приближать карту самому">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>
-    <span data-i18n="explore">Свободный просмотр</span>
-  </button>
+  <!-- 3D: свободный просмотр карты -->
   <div class="explore-bar" id="exploreBar">
     <button class="explore-exit" id="exploreExit">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
@@ -58,13 +54,6 @@
       <span class="tips-mouse" data-i18n="tips.mouse">Тяните — двигать · колёсико — ближе/дальше · правая кнопка или Ctrl — вращать и наклонять</span>
       <span class="tips-touch" data-i18n="tips.touch">Один палец — двигать · двумя — приближать, вращать и наклонять</span>
     </p>
-  </div>
-
-  <!-- Поворот фигуры в 3D -->
-  <div class="orbit-ctl" id="orbitCtl">
-    <button data-rot="-45" aria-label="Повернуть влево" data-i18n-aria="rot.left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/></svg></button>
-    <span data-i18n="orbit">Потяните, чтобы осмотреть<small>высота рельефа и насыпей ×2</small></span>
-    <button data-rot="45" aria-label="Повернуть вправо" data-i18n-aria="rot.right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/></svg></button>
   </div>
 
   <!-- Прогресс экскурсии -->
@@ -204,27 +193,35 @@
             <div class="clip__meta"><span>Science</span><span data-i18n="nyt.date">30 октября 2015</span></div>
             <blockquote>NASA Adds to Evidence of Mysterious Ancient Earthworks</blockquote>
             <figcaption data-i18n="nyt.cap">Статья о том, как снимки из космоса подтвердили существование загадочных земляных фигур в Казахстане.</figcaption>
+            <span class="clip__go" data-i18n="press.go">Открыть источник ↗</span>
+            <a class="clip__link" href="https://www.nytimes.com/2015/11/03/science/nasa-adds-to-evidence-of-mysterious-ancient-earthworks.html" target="_blank" rel="noopener" aria-label="The New York Times"></a>
           </figure>
 
-          <figure class="clip clip--nasa reveal">
-            <div class="clip__mast"><span class="nasa-dot"></span>NASA</div>
-            <div class="clip__meta"><span>Earth Observatory</span><span>2015</span></div>
-            <blockquote data-i18n="nasa.q">Съёмка из космоса</blockquote>
-            <figcaption data-i18n="nasa.cap">Спутниковые снимки высокого разрешения, опубликованные NASA, привлекли к геоглифам внимание учёных всего мира.</figcaption>
+          <figure class="clip clip--natgeo reveal">
+            <div class="clip__mast"><span class="ng-frame"></span>National Geographic</div>
+            <div class="clip__meta"><span>Archaeology</span><span data-i18n="natgeo.date">2 ноября 2015</span></div>
+            <blockquote>These Satellite Views of Ancient Earthworks Are Stirring Debate</blockquote>
+            <figcaption data-i18n="natgeo.cap">Спутниковые снимки геоглифов, которые опубликовало NASA, и спор учёных о том, кто и зачем их построил.</figcaption>
+            <span class="clip__go" data-i18n="press.go">Открыть источник ↗</span>
+            <a class="clip__link" href="https://www.nationalgeographic.com/adventure/article/151102-kazakhstan-earthworks-geoglyphs-space-satellite" target="_blank" rel="noopener" aria-label="National Geographic"></a>
           </figure>
 
-          <figure class="clip clip--bbc reveal">
-            <div class="clip__mast"><i>B</i><i>B</i><i>C</i> News</div>
-            <div class="clip__meta"><span>World</span><span></span></div>
-            <blockquote data-i18n="bbc.q">«Казахстанские Наска»</blockquote>
-            <figcaption data-i18n="bbc.cap">Материал о гигантских фигурах в казахской степи, которые видны только из космоса.</figcaption>
+          <figure class="clip clip--ls reveal">
+            <div class="clip__mast"><b>Live</b>Science</div>
+            <div class="clip__meta"><span>Archaeology</span><span>2015</span></div>
+            <blockquote>Mysterious Symbols in Kazakhstan: How Old Are They, Really?</blockquote>
+            <figcaption data-i18n="ls.cap">Как археологи определили возраст насыпей: по научному датированию им около 2800 лет.</figcaption>
+            <span class="clip__go" data-i18n="press.go">Открыть источник ↗</span>
+            <a class="clip__link" href="https://www.livescience.com/52700-mysterious-geoglyphs-in-kazakhstan-revealed.html" target="_blank" rel="noopener" aria-label="Live Science"></a>
           </figure>
 
-          <figure class="clip clip--disc reveal">
-            <div class="clip__mast">Discovery</div>
-            <div class="clip__meta"><span>Documentary</span><span></span></div>
-            <blockquote data-i18n="disc.q">Загадки степи</blockquote>
-            <figcaption data-i18n="disc.cap">Сюжет о древних геоглифах Тургая и гипотезах их происхождения.</figcaption>
+          <figure class="clip clip--sci reveal">
+            <div class="clip__mast">Science Channel</div>
+            <div class="clip__meta"><span>What on Earth?</span><span data-i18n="sci.date">14 февраля 2017</span></div>
+            <blockquote>Strange Symbols in the Desert</blockquote>
+            <figcaption data-i18n="sci.cap">Серия документального сериала канала группы Discovery: археолог-любитель находит в казахской степи загадочные знаки.</figcaption>
+            <span class="clip__go" data-i18n="press.go">Открыть источник ↗</span>
+            <a class="clip__link" href="https://www.tvmaze.com/episodes/1065268/what-on-earth-3x13-strange-symbols-in-the-desert" target="_blank" rel="noopener" aria-label="Science Channel — What on Earth?"></a>
           </figure>
         </div>
       </div>
@@ -245,7 +242,7 @@
           <svg viewBox="-12 -12 24 24" aria-hidden="true"><rect x="-9" y="-9" width="18" height="18"/><path d="M-9 -9 9 9M9 -9-9 9"/></svg>
           <span data-i18n="logo">Знаки степи</span>
         </span>
-        <p data-i18n="footer">Спутниковые снимки © Esri, Maxar, Earthstar Geographics. Контуры геоглифов нанесены по снимкам; объём насыпей в виде с земли — реконструкция.</p>
+        <p data-i18n="footer">Спутниковые снимки © Esri, Maxar, Earthstar Geographics. Контуры геоглифов нанесены по снимкам.</p>
       </div>
     </footer>
   </main>

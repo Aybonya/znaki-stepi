@@ -9,7 +9,7 @@ const World = (function () {
   const fine = matchMedia('(pointer: fine)').matches;
   const EMPTY = { type: 'FeatureCollection', features: [] };
 
-  let map, ui = {}, scene = 'hero', view = 'space', stop = null, geo = null;
+  let map, ui = {}, scene = 'hero', stop = null, geo = null;
   let figOn = true, eraseStart = 0, eraseFrom = 0;
   let drawStart = 0, drawFrame = 0, spinFrame = 0, pins = [], notes = [], dimMarker = null;
 
@@ -18,8 +18,6 @@ const World = (function () {
   const FRAME = { ushtogay: { size: 330 }, swastika: { size: 110 }, shili: { size: 560, at: [-20, -10] }, ashutasty: { size: 470 } };
   const LABEL_BELOW = ['swastika'];
   // В 3D рельеф и насыпи увеличены по высоте одинаково — насыпи остаются частью ландшафта
-  const EXAG = 2;
-  const DEM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
   const BEARING = { ushtogay: 28, swastika: 0, shili: -15, ashutasty: -3 };
 
   // ---------- геометрия ----------
@@ -62,19 +60,7 @@ const World = (function () {
     return ring;
   }
 
-  function resample(pts, step) {
-    const out = [pts[0]];
-    let carry = 0;
-    for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1], b = pts[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      let t = step - carry;
-      while (t <= d) { out.push([a[0] + ((b[0] - a[0]) * t) / d, a[1] + ((b[1] - a[1]) * t) / d]); t += step; }
-      carry = d - (t - step);
-    }
-    return out;
-  }
-
-  // Подготовка фигуры остановки: линии, насыпи, объёмные насыпи для вида с земли
+  // Подготовка фигуры остановки: линии, насыпи, кольцевые курганы
   function prepare(id) {
     const g = GEO[id], c = g.center;
     const lines = g.lines.map(l => (g.smooth ? smoothLine(l, 10) : l));
@@ -84,23 +70,8 @@ const World = (function () {
     const maxO = Math.max(1, ...mounds.map(m => m.order));
     mounds.forEach(m => { m.order /= maxO; });
 
-    // Объём: насыпь — три ступени, вал — цепочка таких же «бусин»
-    const solids = [];
-    const KS = [1, 0.94, 0.88, 0.82, 0.76, 0.7, 0.63, 0.56, 0.49, 0.42, 0.35, 0.28, 0.2, 0.12];
-    const dome = (x, y, r, h) => KS.forEach((k, i) => {
-      const kn = KS[i + 1] !== undefined ? KS[i + 1] : 0;
-      solids.push({ type: 'Feature', properties: { h: h * Math.pow(1 - kn * kn, 0.75) }, geometry: { type: 'Polygon', coordinates: [circle(c, x, y, r * k, 20)] } });
-    });
-    mounds.forEach(m => dome(m.x, m.y, m.r, 1.1 * EXAG)); // насыпи ≈ 1 м высотой (по описанию Уштогайского квадрата)
-    (g.ramparts || []).forEach(l => resample(g.smooth ? smoothLine(l, 10) : l, 3).forEach(p => dome(p[0], p[1], g.rampartW / 2, 1.8 * EXAG)));
-    (g.rings || []).forEach(r => {
-      const ring = [];
-      for (let i = 0; i <= 64; i++) { const a = (i / 64) * Math.PI * 2; ring.push([r[0] + Math.cos(a) * r[2] * 0.78, r[1] + Math.sin(a) * r[2] * 0.78]); }
-      resample(ring, 3).forEach(p => dome(p[0], p[1], r[2] * 0.22, 1.1 * EXAG));
-    });
-
     const rings = (g.rings || []).map(r => circle(c, r[0], r[1], r[2], 48).map(ll => ll));
-    return { id, g, c, lines, mounds, rings, solids: { type: 'FeatureCollection', features: solids } };
+    return { id, g, c, lines, mounds, rings };
   }
 
   // ---------- отрисовка фигуры с анимацией ----------
@@ -124,7 +95,7 @@ const World = (function () {
     map.getSource('fig-mounds').setData({ type: 'FeatureCollection', features: mf });
 
     const dimOn = t > 2.4;
-    if (dimMarker) dimMarker.getElement().firstChild.classList.toggle('on', dimOn && view === 'space');
+    if (dimMarker) dimMarker.getElement().firstChild.classList.toggle('on', dimOn && !exploring);
     notes.forEach(n => n.getElement().firstChild.classList.toggle('on', t > 3));
 
     if (eraseStart ? t > 0 : t < 4.2) drawFrame = requestAnimationFrame(frame);
@@ -135,7 +106,7 @@ const World = (function () {
     geo = null;
     if (ui.container) ui.container.classList.remove('world--fig');
     if (!map.getSource('fig-lines')) return;
-    ['fig-lines', 'fig-mounds', 'fig-solids', 'fig-dim'].forEach(s => map.getSource(s).setData(EMPTY));
+    ['fig-lines', 'fig-mounds', 'fig-dim'].forEach(s => map.getSource(s).setData(EMPTY));
     if (dimMarker) { dimMarker.remove(); dimMarker = null; }
     notes.forEach(n => n.remove()); notes = [];
   }
@@ -146,7 +117,6 @@ const World = (function () {
     drawStart = 0; eraseStart = 0;
     ui.container.classList.add('world--fig');
     const g = geo.g, c = geo.c;
-    map.getSource('fig-solids').setData(geo.solids);
 
     // Размерная линия с засечками
     let [a, b] = g.dim;
@@ -308,15 +278,9 @@ const World = (function () {
         transition: { duration: 1400, delay: 0 },
         sources: {
           sat: { type: 'raster', tiles: [ESRI], tileSize: 256, maxzoom: 17, attribution: 'Снимки © Esri, Maxar, Earthstar Geographics' },
-          // Рельеф: отдельные источники для объёма и для теневой отмывки (так советует MapLibre)
-          dem: { type: 'raster-dem', tiles: [DEM], tileSize: 256, encoding: 'terrarium', maxzoom: 14, attribution: 'Рельеф: AWS Terrain Tiles' },
-          demShade: { type: 'raster-dem', tiles: [DEM], tileSize: 256, encoding: 'terrarium', maxzoom: 14 },
         },
         layers: [
           { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-fade-duration': 400 } },
-          { id: 'hill', type: 'hillshade', source: 'demShade', layout: { visibility: 'none' },
-            paint: { 'hillshade-exaggeration': 0.4, 'hillshade-illumination-direction': 300,
-              'hillshade-shadow-color': '#24190b', 'hillshade-highlight-color': '#fff1d2', 'hillshade-accent-color': '#3a2e1c' } },
         ],
       },
       center: [58, 44], zoom: small ? 0.9 : 1.6, pitch: 0, bearing: 0,
@@ -327,7 +291,6 @@ const World = (function () {
     });
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
     setInteractive(false);
-    bindOrbitDrag();
 
     map.on('load', () => {
       map.addSource('route', { type: 'geojson', data: EMPTY });
@@ -344,7 +307,7 @@ const World = (function () {
       map.addLayer({ id: 'trip-track', type: 'line', source: 'trip', filter: ['==', ['get', 'kind'], 'track'],
         layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': dayColor, 'line-width': 2.6, 'line-dasharray': [1.2, 1.8], 'line-opacity': 0 } });
 
-      ['fig-lines', 'fig-mounds', 'fig-solids', 'fig-dim'].forEach(s => map.addSource(s, { type: 'geojson', data: EMPTY }));
+      ['fig-lines', 'fig-mounds', 'fig-dim'].forEach(s => map.addSource(s, { type: 'geojson', data: EMPTY }));
       map.addLayer({ id: 'fig-mound-fill', type: 'fill', source: 'fig-mounds', paint: { 'fill-color': GOLD, 'fill-opacity': 0.2 } });
       map.addLayer({ id: 'fig-halo', type: 'line', source: 'fig-lines', layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: { 'line-color': GOLD, 'line-opacity': 0.35, 'line-blur': 8,
@@ -355,12 +318,8 @@ const World = (function () {
       map.addLayer({ id: 'fig-mound-line', type: 'line', source: 'fig-mounds',
         paint: { 'line-color': '#fff1cc', 'line-opacity': 0.85, 'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0.6, 18, 1.6] } });
       map.addLayer({ id: 'fig-dim', type: 'line', source: 'fig-dim', paint: { 'line-color': '#ffffff', 'line-opacity': 0.75, 'line-width': 1 } });
-      map.addLayer({ id: 'fig-solids', type: 'fill-extrusion', source: 'fig-solids',
-        paint: { 'fill-extrusion-color': '#a89c6c', 'fill-extrusion-height': ['get', 'h'], 'fill-extrusion-opacity': 0,
-          'fill-extrusion-vertical-gradient': false } });
-      map.setLight({ anchor: 'map', color: '#fff4e0', intensity: 0.4, position: [1.15, 230, 40] });
       [['fig-halo', 'line'], ['fig-core', 'line'], ['fig-mound-line', 'line'], ['fig-dim', 'line'],
-        ['fig-mound-fill', 'fill'], ['fig-solids', 'fill-extrusion']].forEach(([l, k]) =>
+        ['fig-mound-fill', 'fill']].forEach(([l, k]) =>
         map.setPaintProperty(l, k + '-opacity-transition', { duration: 700, delay: 0 }));
       setLook('night');
       startSpin('globe');
@@ -480,23 +439,14 @@ const World = (function () {
     fly({ center: at, zoom: zoom || 12.5, pitch: 50, bearing: map.getBearing(), padding: tripPadding() }, 2600);
   }
 
-  // Рельеф и отмывка — только в 3D (на плоских видах они не нужны и только грузят сеть)
-  function setRelief(on) {
-    map.setTerrain(on ? { source: 'dem', exaggeration: EXAG } : null);
-    map.setLayoutProperty('hill', 'visibility', on ? 'visible' : 'none');
-  }
-
   function leaveGround() {
-    orbitDrag = null;
-    ui.container.classList.remove('world--orbit', 'world--trip');
+    ui.container.classList.remove('world--trip');
     if (map && map.getLayer && map.getLayer('trip-road')) ['trip-road', 'trip-track', 'trip-case'].forEach(l => map.setPaintProperty(l, 'line-opacity', 0));
-    if (map && map.getTerrain && map.getTerrain()) setRelief(false);
   }
 
   function showHero() {
     leaveGround();
     scene = 'hero'; stop = null; clearFigure(); showPins(false); setLook('night'); setInteractive(false);
-    map.setPaintProperty('fig-solids', 'fill-extrusion-opacity', 0);
     const small = innerWidth < 700;
     fly({ center: [58, 44], zoom: small ? 0.9 : 1.6, pitch: 0, bearing: 0, padding: { left: 0, right: 0, top: 0, bottom: 0 } }, 3000);
     map.once('moveend', () => { if (scene === 'hero') startSpin('globe'); });
@@ -513,7 +463,6 @@ const World = (function () {
   function showRoute() {
     leaveGround();
     scene = 'route'; stop = null; clearFigure(); setLook('day'); showPins(true); setInteractive(false);
-    map.setPaintProperty('fig-solids', 'fill-extrusion-opacity', 0);
     const wide = innerWidth > 900;
     const col = Math.max(16, (innerWidth - 1280) / 2) + 470 + 40;
     fly({ center: [65.745, 50.3], zoom: wide ? 7.5 : 7.4, pitch: 40, bearing: -12,
@@ -522,7 +471,7 @@ const World = (function () {
 
   function showStop(s) {
     leaveGround();
-    scene = 'stop'; stop = s; view = 'space'; showPins(false); setLook('day');
+    scene = 'stop'; stop = s; showPins(false); setLook('day');
     buildFigure(s);
     applyView(false);
     const from = map.getZoom();
@@ -530,19 +479,18 @@ const World = (function () {
     map.once('moveend', () => whenSharp(() => {
       if (scene !== 'stop' || stop !== s) return;
       startDraw();
-      if (view === 'space') startSpin('orbit');
+      startSpin('orbit');
     }));
     setInteractive(fine);
   }
 
-  // Сверху — светящийся контур и насыпи кружками; в 3D — объёмные насыпи, контур приглушён
+  // Сверху — яркий контур; под наклоном контур приглушён, чтобы были видны сами насыпи на снимке
   function applyView(orbit) {
     const on = figOn;
-    map.setPaintProperty('fig-solids', 'fill-extrusion-opacity', on && orbit ? 0.96 : 0);
     map.setPaintProperty('fig-halo', 'line-opacity', on ? (orbit ? 0.2 : 0.35) : 0);
     map.setPaintProperty('fig-core', 'line-opacity', on ? (orbit ? 0.55 : 0.95) : 0);
-    map.setPaintProperty('fig-mound-fill', 'fill-opacity', on && !orbit ? 0.2 : 0);
-    map.setPaintProperty('fig-mound-line', 'line-opacity', on && !orbit ? 0.85 : 0);
+    map.setPaintProperty('fig-mound-fill', 'fill-opacity', on ? (orbit ? 0.1 : 0.2) : 0);
+    map.setPaintProperty('fig-mound-line', 'line-opacity', on ? (orbit ? 0.5 : 0.85) : 0);
     map.setPaintProperty('fig-dim', 'line-opacity', on && !orbit ? 0.75 : 0);
     const drawn = drawStart > 0 && performance.now() - drawStart > 3000;
     if (dimMarker) dimMarker.getElement().firstChild.classList.toggle('on', on && !orbit && drawn);
@@ -554,50 +502,6 @@ const World = (function () {
     return { ...p, zoom: p.zoom + 0.1, pitch: 64, bearing: p.bearing + 35 };
   }
 
-  function toggleView() {
-    if (scene !== 'stop' || !stop) return view;
-    view = view === 'space' ? 'orbit' : 'space';
-    const orbit = view === 'orbit', s = stop;
-    applyView(orbit);
-    setRelief(orbit);
-    ui.container.classList.toggle('world--orbit', orbit);
-    setInteractive(!orbit && fine);
-    fly(orbit ? orbitPose(s) : spacePose(s), 2600);
-    map.once('moveend', () => {
-      if (scene !== 'stop' || stop !== s) return;
-      if (view === 'orbit') startSpin('turn'); else startSpin('orbit');
-    });
-    return view;
-  }
-
-  // Повернуть фигуру кнопкой (в 3D)
-  function rotate(deg) {
-    if (view !== 'orbit' || scene !== 'stop') return;
-    stopSpin();
-    map.easeTo({ bearing: map.getBearing() + deg, duration: 900, essential: true });
-  }
-
-  // Осмотреть мышью / пальцем: вбок — поворот, вверх-вниз — наклон
-  let orbitDrag = null;
-  function bindOrbitDrag() {
-    const el = ui.container;
-    el.addEventListener('pointerdown', e => {
-      if (exploring || view !== 'orbit' || scene !== 'stop' || e.button > 0) return;
-      stopSpin(); map.stop();
-      orbitDrag = { x: e.clientX, y: e.clientY, b: map.getBearing(), p: map.getPitch(), id: e.pointerId };
-    });
-    addEventListener('pointermove', e => {
-      if (!orbitDrag || e.pointerId !== orbitDrag.id) return;
-      map.jumpTo({
-        bearing: orbitDrag.b - (e.clientX - orbitDrag.x) * 0.35,
-        pitch: Math.max(20, Math.min(78, orbitDrag.p - (e.clientY - orbitDrag.y) * 0.25)),
-      });
-    });
-    const up = () => { orbitDrag = null; };
-    addEventListener('pointerup', up);
-    addEventListener('pointercancel', up);
-  }
-
   // Скрыть рисунок — он «стирается» в обратном порядке; показать — прорисовывается заново
   function setFigure(on) {
     if (on === figOn) return;
@@ -605,25 +509,24 @@ const World = (function () {
     ui.container.classList.toggle('world--nofig', !on);
     if (on) {
       eraseStart = 0;
-      applyView(view === 'orbit');
+      applyView(exploring && map.getPitch() > 25);
       startDraw();
       return;
     }
-    map.setPaintProperty('fig-solids', 'fill-extrusion-opacity', 0);
     map.setPaintProperty('fig-dim', 'line-opacity', 0);
-    if (!geo || !drawStart) { applyView(view === 'orbit'); return; }
+    if (!geo || !drawStart) { applyView(exploring && map.getPitch() > 25); return; }
     eraseFrom = Math.min(4.2, (performance.now() - drawStart) / 1000);
     eraseStart = performance.now();
     cancelAnimationFrame(drawFrame);
     drawFrame = requestAnimationFrame(frame);
   }
 
-  // ---------- свободный просмотр: карта целиком в руках зрителя ----------
+  // ---------- 3D: свободный просмотр, карта целиком в руках зрителя ----------
   const ZERO = { left: 0, right: 0, top: 0, bottom: 0 };
   const FREE = ['scrollZoom', 'boxZoom', 'dragPan', 'dragRotate', 'touchZoomRotate', 'touchPitch', 'doubleClickZoom', 'keyboard'];
   let exploring = false, navCtl = null, stopsList = [], exploreFrom = -1, exploreIdx = -1, pitchRaf = 0;
 
-  // Наклонили карту — насыпи объёмные; смотрим сверху — светящийся рисунок
+  // Наклонили карту — контур приглушён; смотрим сверху — светящийся рисунок
   function onExplorePitch() {
     if (pitchRaf) return;
     pitchRaf = requestAnimationFrame(() => { pitchRaf = 0; if (exploring) applyView(map.getPitch() > 25); });
@@ -643,7 +546,7 @@ const World = (function () {
   function explore(on) {
     if (on === exploring) return -1;
     exploring = on;
-    stopSpin(); map.stop(); orbitDrag = null;
+    stopSpin(); map.stop();
     ui.container.classList.toggle('world--explore', on);
     if (on) {
       exploreFrom = exploreIdx = stop ? stopsList.indexOf(stop) : -1;
@@ -651,11 +554,11 @@ const World = (function () {
       navCtl = new maplibregl.NavigationControl({ visualizePitch: true });
       map.addControl(navCtl, 'top-right');
       setLook('day');
-      setRelief(true);
       showPins(true);
       map.on('pitch', onExplorePitch);
-      onExplorePitch();
-      map.easeTo({ padding: ZERO, duration: 800 });
+      // С остановки — плавный облёт к геоглифу под наклоном
+      if (scene === 'stop' && stop) fly({ ...orbitPose(stop), padding: ZERO }, 2600);
+      else map.easeTo({ padding: ZERO, duration: 800 });
       return -1;
     }
     map.off('pitch', onExplorePitch);
@@ -664,14 +567,12 @@ const World = (function () {
     showPins(scene === 'route');
     if (exploreIdx !== exploreFrom && exploreIdx >= 0) return exploreIdx; // страница сама прокрутится к этой остановке
     if (scene === 'stop' && stop) {
-      const orbit = view === 'orbit', s = stop;
-      setRelief(orbit);
-      applyView(orbit);
-      setInteractive(!orbit && fine);
-      fly(orbit ? orbitPose(s) : spacePose(s), 2200);
-      map.once('moveend', () => { if (scene === 'stop' && stop === s && !exploring) startSpin(orbit ? 'turn' : 'orbit'); });
+      const s = stop;
+      applyView(false);
+      setInteractive(fine);
+      fly(spacePose(s), 2200);
+      map.once('moveend', () => { if (scene === 'stop' && stop === s && !exploring) startSpin('orbit'); });
     } else if (scene === 'route') {
-      setRelief(false);
       showRoute();
     }
     return -1;
@@ -681,5 +582,5 @@ const World = (function () {
     if (p) { leaveGround(); stopSpin(); setInteractive(false); scene = 'off'; }
   }
 
-  return { init, setPins, setTrip, relabel, showTrip, flyToPlace, prefetchAll, showHero, showIntro, showRoute, showStop, toggleView, rotate, setFigure, explore, pause, getView: () => view };
+  return { init, setPins, setTrip, relabel, showTrip, flyToPlace, prefetchAll, showHero, showIntro, showRoute, showStop, setFigure, explore, pause };
 })();
