@@ -3,6 +3,11 @@
   const pad = n => String(n).padStart(2, '0');
   let worldOk = false;
   let activeStop = -1;
+  const t = I18N.t;
+  // Остановки и поездка на текущем языке
+  const S = i => I18N.pick(STOPS[i]);
+  const stopsL = () => STOPS.map((_, i) => S(i));
+  const placesL = () => TRIP.places.map(I18N.pick);
 
   // Маленькая схема фигуры для шапки панели — по той же геометрии, что и рисунок на снимке
   const ICON_ROT = { ushtogay: 28, swastika: 0, shili: -15, ashutasty: -3 };
@@ -42,7 +47,7 @@
   // ---------- Остановки (главы) ----------
   function buildChapters() {
     const box = $('chapters'), n = STOPS.length;
-    box.innerHTML = STOPS.map((s, i) => {
+    box.innerHTML = stopsL().map((s, i) => {
       const mins = Math.max(1, Math.round(s.audio.split(/\s+/).length / 120));
       return `
       <section class="chapter" id="stop-${i + 1}" data-scene="stop" data-i="${i}">
@@ -50,7 +55,7 @@
           <article class="chapter__panel">
             <header class="cp-head">
               <div class="cp-kicker">
-                <span class="cp-step">Остановка <b>${pad(i + 1)}</b> / ${pad(n)}</span>
+                <span class="cp-step">${t('stop')} <b>${pad(i + 1)}</b> / ${pad(n)}</span>
                 <span class="cp-progress" aria-hidden="true">${STOPS.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</span>
               </div>
               <div class="cp-title">
@@ -73,7 +78,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg>
                 ${s.coordsText.replace(', ', ' · ')}
               </p>
-              <blockquote class="cp-meaning"><span>Смысл</span>${s.meaning}</blockquote>
+              <blockquote class="cp-meaning"><span>${t('meaning')}</span>${s.meaning}</blockquote>
               <p class="chapter__text">${s.text}</p>
             </div>
             <div class="chapter__actions">
@@ -82,12 +87,12 @@
                   <svg viewBox="0 0 24 24" class="i-play"><path d="M8 5v14l11-7z"/></svg>
                   <svg viewBox="0 0 24 24" class="i-stop"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
                 </span>
-                <span class="audio__label"><b>Аудиогид</b><small>≈ ${mins} мин</small></span>
+                <span class="audio__label"><b>${t('audio')}</b><small>≈ ${mins} ${t('min')}</small></span>
                 <span class="audio__wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
               </button>
-              <button class="switch" data-i="${i}" aria-label="Переключить вид: сверху или 3D">
+              <button class="switch" data-i="${i}" aria-label="${t('switchAria')}">
                 <span class="switch__opt on" data-v="space">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg>Сверху
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg>${t('top')}
                 </span>
                 <span class="switch__opt" data-v="orbit">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>3D
@@ -98,13 +103,13 @@
           </article>
           <p class="chapter__hint">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/></svg>
-            Потяните, чтобы осмотреться
+            ${t('hint')}
           </p>
         </div>
       </section>`;
     }).join('');
 
-    $('rail').innerHTML = STOPS.map((s, i) =>
+    $('rail').innerHTML = stopsL().map((s, i) =>
       `<a href="#stop-${i + 1}" data-i="${i}"><span>${s.name}</span><i>${pad(i + 1)}</i></a>`).join('');
   }
 
@@ -115,24 +120,24 @@
     night: '<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   };
   function buildTrip() {
-    const T = TRIP;
+    const T = I18N.pick(TRIP);
     $('tripCol').innerHTML = `
       <div class="trip__card trip__intro" data-scene="trip" data-day="all">
-        <p class="eyebrow">Для путешественников</p>
-        <h2>План поездки<br><em>к четырём геоглифам</em></h2>
-        <p class="trip__lead">Готовый маршрут на два дня: старт и финиш в Аркалыке, ночлег в Амангельды. Нажмите на шаг — карта покажет это место.</p>
+        <p class="eyebrow">${t('tripEyebrow')}</p>
+        <h2>${t('tripH')}</h2>
+        <p class="trip__lead">${t('tripLead')}</p>
         <div class="trip__stats">${T.summary.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>
         <div class="trip__legend">
-          <span><i class="lg lg--d1"></i>День 1</span><span><i class="lg lg--d2"></i>День 2</span>
-          <span><i class="lg lg--road"></i>дорога</span><span><i class="lg lg--track"></i>грунтовка, брод</span>
+          <span><i class="lg lg--d1"></i>${t('day')(1)}</span><span><i class="lg lg--d2"></i>${t('day')(2)}</span>
+          <span><i class="lg lg--road"></i>${t('road')}</span><span><i class="lg lg--track"></i>${t('track')}</span>
         </div>
       </div>
-      ${T.days.map(d => `
+      ${T.days.map(I18N.pick).map(d => `
       <article class="trip__card trip__day trip__day--${d.n}" data-scene="trip" data-day="${d.n}">
-        <header><span class="trip__daynum">День ${d.n}</span><span class="trip__km">${d.km}</span></header>
+        <header><span class="trip__daynum">${t('day')(d.n)}</span><span class="trip__km">${d.km}</span></header>
         <h3>${d.title}</h3>
         <ol class="trip__steps">
-          ${d.steps.map(st => `
+          ${d.steps.map(I18N.pick).map(st => `
           <li class="st st--${st.kind}">
             <button data-at="${st.at.join(',')}" data-zoom="${st.kind === 'glyph' ? 15 : 12}">
               <span class="st__dot">${st.kind === 'glyph' ? pad(st.stop + 1) : TRIP_ICON[st.kind]}</span>
@@ -143,34 +148,34 @@
         </ol>
       </article>`).join('')}
       <div class="trip__card trip__tips" data-scene="trip" data-day="all">
-        <h3>Полезно знать</h3>
+        <h3>${t('tipsH')}</h3>
         <div class="tips">${T.tips.map(([h, t]) => `<div class="tip"><b>${h}</b><p>${t}</p></div>`).join('')}</div>
         <p class="trip__source">${T.source}</p>
       </div>`;
-    $('tripCol').addEventListener('click', e => {
-      const b = e.target.closest('button[data-at]');
-      if (b && worldOk) World.flyToPlace(b.dataset.at.split(',').map(Number), +b.dataset.zoom);
-    });
   }
+  $('tripCol').addEventListener('click', e => {
+    const b = e.target.closest('button[data-at]');
+    if (b && worldOk) World.flyToPlace(b.dataset.at.split(',').map(Number), +b.dataset.zoom);
+  });
 
   // ---------- Список маршрута (точки рисует фоновая карта) ----------
   function buildRoute() {
-    $('routeList').innerHTML = STOPS.map((s, i) => `
+    $('routeList').innerHTML = stopsL().map((s, i) => `
       <li><button data-i="${i}">
         <span class="route__n">${pad(i + 1)}</span>
         <span class="route__t"><b>${s.name}</b><small>${s.place} · ${s.facts[0][1]}</small></span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </button></li>`).join('');
-    $('routeList').addEventListener('click', e => {
-      const b = e.target.closest('button');
-      if (b) go(+b.dataset.i);
-    });
   }
+  $('routeList').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (b) go(+b.dataset.i);
+  });
 
   function go(i) { $('stop-' + (i + 1)).scrollIntoView({ behavior: 'smooth' }); }
 
   // ---------- Состояние сцены по прокрутке ----------
-  let sceneEl = null;
+  let sceneEl = null, sceneKey = '';
 
   function applyScene(el) {
     const sc = el.dataset.scene, hud = $('hud'), rail = $('rail');
@@ -179,58 +184,63 @@
     hud.classList.toggle('on', sc !== 'off');
     rail.classList.toggle('on', sc === 'stop');
     $('veil').className = 'veil veil--' + sc;
+    setHud(sc, el);
+    rail.querySelectorAll('a').forEach((a, k) => a.classList.toggle('active', sc === 'stop' && k === +el.dataset.i));
+    // Та же сцена (например, после смены языка) — только подписи, без перелёта
+    const key = sc + (el.dataset.i || el.dataset.day || '');
+    if (key === sceneKey) return;
+    sceneKey = key;
 
     if (sc === 'stop') {
       const i = +el.dataset.i;
-      if (i === activeStop) return;
       activeStop = i;
       stopSpeech();
       World.showStop(STOPS[i]);
-      setHud(STOPS[i], STOPS[i].name);
       document.querySelectorAll('.switch').forEach(resetSwitch);
-      rail.querySelectorAll('a').forEach((a, k) => a.classList.toggle('active', k === i));
       return;
     }
     activeStop = -1;
     stopSpeech();
-    if (sc === 'hero') { World.showHero(); $('hudName').textContent = 'Земля · вид из космоса'; $('hudCoords').textContent = '48° N · 58° E'; }
-    else if (sc === 'intro') { World.showIntro(); $('hudName').textContent = 'Казахстан'; $('hudCoords').textContent = 'Тургайская степь · 50.3° N · 65.4° E'; }
-    else if (sc === 'trip') { World.showTrip(el.dataset.day); $('hudName').textContent = 'План поездки'; $('hudCoords').textContent = 'Аркалык · Амангельды'; }
-    else if (sc === 'route') { World.showRoute(); $('hudName').textContent = 'Маршрут экскурсии'; $('hudCoords').textContent = 'Костанайская область'; }
+    if (sc === 'hero') World.showHero();
+    else if (sc === 'intro') World.showIntro();
+    else if (sc === 'trip') World.showTrip(el.dataset.day);
+    else if (sc === 'route') World.showRoute();
     else World.pause(true);
   }
 
-  function watchScenes() {
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (!e.isIntersecting || e.target === sceneEl) return;
-        sceneEl = e.target;
-        applyScene(sceneEl);
-      });
-    }, { rootMargin: '-50% 0px -50% 0px' });
-    document.querySelectorAll('[data-scene]').forEach(s => io.observe(s));
-  }
+  const sceneIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting || e.target === sceneEl) return;
+      sceneEl = e.target;
+      applyScene(sceneEl);
+    });
+  }, { rootMargin: '-50% 0px -50% 0px' });
+  const watchScenes = () => document.querySelectorAll('[data-scene]').forEach(s => sceneIO.observe(s));
 
-  function setHud(s, name) {
-    const c = GEO[s.id].center;
+  function setHud(sc, el) {
+    let name, coords;
+    if (sc === 'stop') {
+      const s = S(+el.dataset.i), c = GEO[s.id].center;
+      name = s.name;
+      coords = c[0].toFixed(4) + '° N · ' + c[1].toFixed(4) + '° E';
+    } else if (t('hud')[sc]) [name, coords] = t('hud')[sc];
+    else return;
     $('hudName').textContent = name;
-    $('hudCoords').textContent = c[0].toFixed(4) + '° N · ' + c[1].toFixed(4) + '° E';
+    $('hudCoords').textContent = coords;
   }
 
   // ---------- Переключатель вида ----------
-  function resetSwitch(sw) {
-    document.body.classList.remove('view-3d');
-    sw.classList.remove('ground');
-    sw.querySelectorAll('.switch__opt').forEach(o => o.classList.toggle('on', o.dataset.v === 'space'));
+  function setSwitch(sw, v) {
+    sw.classList.toggle('ground', v === 'orbit');
+    document.body.classList.toggle('view-3d', v === 'orbit');
+    sw.querySelectorAll('.switch__opt').forEach(o => o.classList.toggle('on', o.dataset.v === v));
   }
+  const resetSwitch = sw => setSwitch(sw, 'space');
 
   document.addEventListener('click', e => {
     const sw = e.target.closest('.switch');
     if (!sw || !worldOk) return;
-    const v = World.toggleView();
-    sw.classList.toggle('ground', v === 'orbit');
-    document.body.classList.toggle('view-3d', v === 'orbit');
-    sw.querySelectorAll('.switch__opt').forEach(o => o.classList.toggle('on', o.dataset.v === v));
+    setSwitch(sw, World.toggleView());
   });
 
   // ---------- Показать / скрыть рисунок поверх снимка ----------
@@ -242,8 +252,9 @@
     const b = $('figToggle');
     b.setAttribute('aria-pressed', String(!figOn));
     b.classList.toggle('off', !figOn);
-    b.querySelector('span').textContent = figOn ? 'Скрыть рисунок' : 'Показать рисунок';
+    figLabel();
   });
+  const figLabel = () => { $('figToggle').querySelector('span').textContent = t(figOn ? 'figHide' : 'figShow'); };
 
   // ---------- Свободный просмотр ----------
   function setExplore(on) {
@@ -263,9 +274,9 @@
   // ---------- Аудиогид ----------
   let playing = null;
 
-  function ruVoice() {
-    const vs = speechSynthesis.getVoices();
-    return vs.find(v => /^ru/i.test(v.lang) && /natural|online|google/i.test(v.name)) || vs.find(v => /^ru/i.test(v.lang));
+  function voiceFor(lang) {
+    const vs = speechSynthesis.getVoices(), re = new RegExp('^' + lang, 'i');
+    return vs.find(v => re.test(v.lang) && /natural|online|google/i.test(v.name)) || vs.find(v => re.test(v.lang));
   }
 
   function stopSpeech() {
@@ -277,12 +288,19 @@
   document.addEventListener('click', e => {
     const btn = e.target.closest('.audio');
     if (!btn) return;
-    if (!('speechSynthesis' in window)) { btn.querySelector('small').textContent = 'Озвучка не поддерживается'; return; }
+    if (!('speechSynthesis' in window)) { btn.querySelector('small').textContent = t('audioNo'); return; }
     if (playing === btn) { stopSpeech(); return; }
     stopSpeech();
-    const u = new SpeechSynthesisUtterance(STOPS[+btn.dataset.i].audio);
-    u.lang = 'ru-RU'; u.rate = 0.95;
-    const v = ruVoice(); if (v) u.voice = v;
+    const i = +btn.dataset.i;
+    let text = S(i).audio, lang = I18N.lang, v = voiceFor(lang);
+    // Казахского голоса в браузере может не быть — тогда гид читает русский текст
+    if (!v && lang === 'kk') {
+      text = STOPS[i].audio; lang = 'ru'; v = voiceFor('ru');
+      btn.querySelector('small').textContent = '≈ ' + Math.max(1, Math.round(text.split(/\s+/).length / 120)) + ' ' + t('min') + ' · ' + t('audioRu');
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === 'kk' ? 'kk-KZ' : 'ru-RU'; u.rate = 0.95;
+    if (v) u.voice = v;
     u.onend = u.onerror = () => { if (playing === btn) stopSpeech(); };
     speechSynthesis.speak(u);
     btn.classList.add('playing');
@@ -293,22 +311,22 @@
   function buildQuiz() {
     const box = $('quizBox');
     let idx = 0, score = 0;
-    const L = ['А', 'Б', 'В', 'Г'];
+    const L = t('letters');
 
     function show() {
       if (idx >= QUIZ.length) return finish();
-      const q = QUIZ[idx];
+      const q = I18N.pick(QUIZ[idx]);
       box.innerHTML = `
         <div class="quiz__top">
           <span class="quiz__count"><b>${pad(idx + 1)}</b> / ${pad(QUIZ.length)}</span>
-          <span class="quiz__stop">Остановка ${idx + 1} · ${STOPS[idx].name}</span>
+          <span class="quiz__stop">${t('stopN')(idx + 1)} · ${S(idx).name}</span>
         </div>
         <div class="quiz__bar"><i style="width:${(idx / QUIZ.length) * 100}%"></i></div>
         <h3 class="quiz__q">${q.q}</h3>
         <div class="quiz__opts">${q.options.map((o, k) => `<button data-k="${k}"><i>${L[k]}</i><span>${o}</span></button>`).join('')}</div>
         <div class="quiz__foot" hidden>
           <p class="quiz__explain"></p>
-          <button class="btn btn--primary quiz__next">${idx === QUIZ.length - 1 ? 'Узнать результат' : 'Следующий вопрос'}
+          <button class="btn btn--primary quiz__next">${t(idx === QUIZ.length - 1 ? 'result' : 'next')}
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
         </div>`;
       box.classList.remove('swap'); void box.offsetWidth; box.classList.add('swap');
@@ -321,16 +339,14 @@
         });
         if (ok) score++; else b.classList.add('wrong');
         const ex = box.querySelector('.quiz__explain');
-        ex.innerHTML = `<b class="${ok ? 'ok' : 'no'}">${ok ? 'Верно!' : 'Не совсем.'}</b> ${q.explain}`;
+        ex.innerHTML = `<b class="${ok ? 'ok' : 'no'}">${t(ok ? 'right' : 'wrong')}</b> ${q.explain}`;
         box.querySelector('.quiz__foot').hidden = false;
       }));
       box.querySelector('.quiz__next').addEventListener('click', () => { idx++; show(); });
     }
 
     function finish() {
-      const msg = score === QUIZ.length ? 'Безупречно! Вы настоящий знаток геоглифов Тургая.'
-        : score >= 2 ? 'Хороший результат! Загляните ещё раз в экскурсию.'
-        : 'Степь хранит много тайн — попробуйте пройти экскурсию ещё раз.';
+      const msg = t(score === QUIZ.length ? 'best' : score >= 2 ? 'good' : 'low');
       const R = 54, C = 2 * Math.PI * R;
       box.innerHTML = `
         <div class="quiz__result">
@@ -340,7 +356,7 @@
           </svg>
           <b>${score}<small>/${QUIZ.length}</small></b>
           <p>${msg}</p>
-          <button class="btn btn--ghost">Пройти заново</button>
+          <button class="btn btn--ghost">${t('again')}</button>
         </div>`;
       requestAnimationFrame(() => requestAnimationFrame(() => {
         box.querySelector('.ring__fg').style.strokeDashoffset = C * (1 - score / QUIZ.length);
@@ -352,29 +368,46 @@
   }
 
   // ---------- Появление, шапка ----------
+  const revealIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); revealIO.unobserve(e.target); }
+  }), { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
   function reveal() {
-    const io = new IntersectionObserver(es => es.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-    }), { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.reveal, .chapter__panel').forEach(el => io.observe(el));
-    const nav = $('nav');
-    addEventListener('scroll', () => nav.classList.toggle('nav--solid', scrollY > 60), { passive: true });
+    document.querySelectorAll('.reveal:not(.in), .chapter__panel:not(.in)').forEach(el => revealIO.observe(el));
   }
+  addEventListener('scroll', () => $('nav').classList.toggle('nav--solid', scrollY > 60), { passive: true });
+
+  // ---------- Язык ----------
+  function render() {
+    document.querySelectorAll('#chapters [data-scene], #tripCol [data-scene]').forEach(s => sceneIO.unobserve(s));
+    buildChapters();
+    buildRoute();
+    buildTrip();
+    buildQuiz();
+    figLabel();
+    reveal();
+    watchScenes();
+  }
+  document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => I18N.set(b.dataset.lang)));
+  I18N.onChange(() => {
+    stopSpeech();
+    render();
+    if (!worldOk) return;
+    World.relabel(stopsL(), placesL());
+    if (World.getView() === 'orbit') document.querySelectorAll('.switch').forEach(sw => setSwitch(sw, 'orbit'));
+    if (sceneEl) applyScene(sceneEl);
+  });
 
   // ---------- Запуск ----------
-  buildChapters();
-  buildRoute();
-  buildTrip();
-  buildQuiz();
-  reveal();
+  I18N.apply();
+  render();
 
   try {
     World.init($('world'), {
       altEl: $('hudAlt'),
       onReady() {
         worldOk = true;
-        World.setPins(STOPS, go);
-        World.setTrip(TRIP);
+        World.setPins(stopsL(), go);
+        World.setTrip(TRIP, placesL());
         setTimeout(() => World.prefetchAll(STOPS), 1500);
         if (sceneEl) applyScene(sceneEl);
       },
@@ -382,7 +415,6 @@
   } catch (err) {
     document.body.classList.add('no-webgl');
   }
-  watchScenes();
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
 
   const done = () => document.body.classList.add('ready');

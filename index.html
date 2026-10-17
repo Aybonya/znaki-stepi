@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="kk">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,8 +18,9 @@
       <rect x="-40" y="-40" width="80" height="80" />
       <path d="M-40 -40 L40 40 M40 -40 L-40 40" />
     </svg>
-    <p>Загружаем степь…</p>
+    <p data-i18n="loader">Загружаем степь…</p>
   </div>
+  <script src="js/i18n.js"></script>
 
   <div class="space" aria-hidden="true"></div>
   <div class="world" id="world"></div>
@@ -33,91 +34,97 @@
     <span class="hud__sep"></span>
     <span id="hudCoords">50.8331° N · 65.3264° E</span>
     <span class="hud__sep"></span>
-    <span>Высота <b id="hudAlt">0</b></span>
+    <span><span data-i18n="hud.alt">Высота</span> <b id="hudAlt">0</b></span>
   </div>
 
   <!-- Рисунок поверх снимка -->
-  <button class="fig-toggle" id="figToggle" aria-pressed="false" title="Убрать нарисованный контур и посмотреть на сам геоглиф">
+  <button class="fig-toggle" id="figToggle" aria-pressed="false" data-i18n-title="fig.title" title="Убрать нарисованный контур и посмотреть на сам геоглиф">
     <svg viewBox="0 0 24 24" aria-hidden="true" class="i-eye"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
     <svg viewBox="0 0 24 24" aria-hidden="true" class="i-eye-off"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
     <span>Скрыть рисунок</span>
   </button>
 
   <!-- Свободный просмотр карты -->
-  <button class="explore-btn" id="exploreBtn" title="Вращать, наклонять и приближать карту самому">
+  <button class="explore-btn" id="exploreBtn" data-i18n-title="explore.title" title="Вращать, наклонять и приближать карту самому">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>
-    <span>Свободный просмотр</span>
+    <span data-i18n="explore">Свободный просмотр</span>
   </button>
   <div class="explore-bar" id="exploreBar">
     <button class="explore-exit" id="exploreExit">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
-      Вернуться к экскурсии
+      <span data-i18n="explore.exit">Вернуться к экскурсии</span>
     </button>
     <p class="explore-tips">
-      <span class="tips-mouse">Тяните — двигать · колёсико — ближе/дальше · правая кнопка или Ctrl — вращать и наклонять</span>
-      <span class="tips-touch">Один палец — двигать · двумя — приближать, вращать и наклонять</span>
+      <span class="tips-mouse" data-i18n="tips.mouse">Тяните — двигать · колёсико — ближе/дальше · правая кнопка или Ctrl — вращать и наклонять</span>
+      <span class="tips-touch" data-i18n="tips.touch">Один палец — двигать · двумя — приближать, вращать и наклонять</span>
     </p>
   </div>
 
   <!-- Поворот фигуры в 3D -->
   <div class="orbit-ctl" id="orbitCtl">
-    <button data-rot="-45" aria-label="Повернуть влево"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/></svg></button>
-    <span>Потяните, чтобы осмотреть<small>высота рельефа и насыпей ×2</small></span>
-    <button data-rot="45" aria-label="Повернуть вправо"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/></svg></button>
+    <button data-rot="-45" aria-label="Повернуть влево" data-i18n-aria="rot.left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/></svg></button>
+    <span data-i18n="orbit">Потяните, чтобы осмотреть<small>высота рельефа и насыпей ×2</small></span>
+    <button data-rot="45" aria-label="Повернуть вправо" data-i18n-aria="rot.right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/></svg></button>
   </div>
 
   <!-- Прогресс экскурсии -->
-  <nav class="rail" id="rail" aria-label="Остановки"></nav>
+  <nav class="rail" id="rail" aria-label="Остановки" data-i18n-aria="rail"></nav>
 
   <header class="nav" id="nav">
     <a href="#top" class="nav__logo">
       <svg viewBox="-12 -12 24 24" aria-hidden="true"><rect x="-9" y="-9" width="18" height="18"/><path d="M-9 -9 9 9M9 -9-9 9"/></svg>
-      Знаки степи
+      <span data-i18n="logo">Знаки степи</span>
     </a>
-    <nav class="nav__links">
-      <a href="#route">Маршрут</a>
-      <a href="#stop-1">Экскурсия</a>
-      <a href="#trip">Поездка</a>
-      <a href="#research">Исследователи</a>
-      <a href="#world-press">Мировой резонанс</a>
-      <a href="#quiz">Тест</a>
-    </nav>
+    <div class="nav__right">
+      <nav class="nav__links">
+        <a href="#route" data-i18n="nav.route">Маршрут</a>
+        <a href="#stop-1" data-i18n="nav.tour">Экскурсия</a>
+        <a href="#trip" data-i18n="nav.trip">Поездка</a>
+        <a href="#research" data-i18n="nav.research">Исследователи</a>
+        <a href="#world-press" data-i18n="nav.press">Мировой резонанс</a>
+        <a href="#quiz" data-i18n="nav.quiz">Тест</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Выбор языка" data-i18n-aria="lang">
+        <button data-lang="kk" lang="kk" aria-pressed="true">Қаз</button>
+        <button data-lang="ru" lang="ru" aria-pressed="false">Рус</button>
+      </div>
+    </div>
   </header>
 
   <main>
     <!-- 1. Главная -->
     <section class="hero" id="top" data-scene="hero">
       <div class="hero__inner">
-        <p class="eyebrow fade" style="--d:.2s"><span class="pulse"></span>Костанайская область · Тургайская степь</p>
+        <p class="eyebrow fade" style="--d:.2s"><span class="pulse"></span><span data-i18n="hero.eyebrow">Костанайская область · Тургайская степь</span></p>
         <h1 class="hero__title">
-          <span class="line"><span style="--d:.35s">Знаки</span></span>
-          <span class="line"><span style="--d:.5s"><em>степи</em></span></span>
+          <span class="line"><span style="--d:.35s" data-i18n="hero.t1">Знаки</span></span>
+          <span class="line"><span style="--d:.5s" data-i18n="hero.t2"><em>степи</em></span></span>
         </h1>
-        <p class="hero__lead fade" style="--d:.8s">
+        <p class="hero__lead fade" style="--d:.8s" data-i18n="hero.lead">
           Гигантские фигуры из земли, которым тысячи лет. С земли — лишь невысокие холмы в траве.
           Увидеть их целиком можно только из космоса.
         </p>
         <div class="hero__cta fade" style="--d:1s">
-          <a href="#route" class="btn btn--primary">Начать виртуальную экскурсию
+          <a href="#route" class="btn btn--primary"><span data-i18n="hero.cta">Начать виртуальную экскурсию</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
-          <span class="hero__meta">4 остановки · 3D · аудиогид</span>
+          <span class="hero__meta" data-i18n="hero.meta">4 остановки · 3D · аудиогид</span>
         </div>
       </div>
-      <a href="#intro" class="scroll-cue fade" style="--d:1.3s" aria-label="Листать вниз"><span></span></a>
+      <a href="#intro" class="scroll-cue fade" style="--d:1.3s" aria-label="Листать вниз" data-i18n-aria="hero.down"><span></span></a>
     </section>
 
     <section class="intro" id="intro" data-scene="intro">
       <div class="wrap">
-        <blockquote class="intro__quote reveal">
-          Около <b>300</b> геоглифов известно в мире степей. <b>260</b> из них — в Костанайской области.
+        <blockquote class="intro__quote reveal" data-i18n="intro.quote">
+          За 2007–2016 годы на космических снимках Тургая нашли <b>84</b> геоглифа. <b>61</b> из них археологи проверили на месте.
           <span>И почти никто о них не знает.</span>
         </blockquote>
         <div class="stats">
-          <div class="stat glass reveal"><b>2007</b><span>год открытия по снимкам Google Earth</span></div>
-          <div class="stat glass reveal"><b>101</b><span>насыпь в Уштогайском квадрате</span></div>
-          <div class="stat glass reveal"><b>436<small>м</small></b><span>длина самого большого креста</span></div>
-          <div class="stat glass reveal"><b>≈2800</b><span>лет — возраст по научному датированию</span></div>
+          <div class="stat glass reveal"><b>2007</b><span data-i18n="stat.year">год открытия по снимкам Google Earth</span></div>
+          <div class="stat glass reveal"><b>101</b><span data-i18n="stat.mounds">насыпь в Уштогайском квадрате</span></div>
+          <div class="stat glass reveal"><b>436<small>м</small></b><span data-i18n="stat.cross">длина самого большого креста</span></div>
+          <div class="stat glass reveal"><b>≈2800</b><span data-i18n="stat.age">лет — возраст по научному датированию</span></div>
         </div>
       </div>
     </section>
@@ -126,9 +133,9 @@
     <section class="route" id="route" data-scene="route">
       <div class="wrap route__wrap">
         <div class="route__head">
-          <p class="eyebrow">Маршрут экскурсии</p>
-          <h2 class="reveal">Четыре остановки<br><em>в Тургайской степи</em></h2>
-          <p class="route__lead reveal">Под вами — настоящие спутниковые снимки. Нажмите на точку или выберите остановку, чтобы перенестись к геоглифу.</p>
+          <p class="eyebrow" data-i18n="route.eyebrow">Маршрут экскурсии</p>
+          <h2 class="reveal" data-i18n="route.h">Четыре остановки<br><em>в Тургайской степи</em></h2>
+          <p class="route__lead reveal" data-i18n="route.lead">Под вами — настоящие спутниковые снимки. Нажмите на точку или выберите остановку, чтобы перенестись к геоглифу.</p>
         </div>
         <ol class="route__list glass" id="routeList"></ol>
       </div>
@@ -146,9 +153,9 @@
     <section class="research" id="research" data-scene="off">
       <div class="wrap research__grid">
         <div class="research__head">
-          <p class="eyebrow">История открытий</p>
-          <h2 class="reveal">Люди, которые<br><em>увидели знаки</em></h2>
-          <p class="research__lead reveal">Двести пятьдесят лет назад о них писали путешественники. Но мир узнал о геоглифах только в XXI веке.</p>
+          <p class="eyebrow" data-i18n="res.eyebrow">История открытий</p>
+          <h2 class="reveal" data-i18n="res.h">Люди, которые<br><em>увидели знаки</em></h2>
+          <p class="research__lead reveal" data-i18n="res.lead">Двести пятьдесят лет назад о них писали путешественники. Но мир узнал о геоглифах только в XXI веке.</p>
         </div>
 
         <div class="people">
@@ -156,8 +163,8 @@
             <span class="person__year">1771</span>
             <div class="person__body">
               <h3>Николай Рычков</h3>
-              <p class="person__role">Капитан, путешественник</p>
-              <p>Во время экспедиции по казахской степи описывает загадочные земляные сооружения. Его записки 1772 года — одно из первых письменных упоминаний.</p>
+              <p class="person__role" data-i18n="p1.role">Капитан, путешественник</p>
+              <p data-i18n="p1.text">Во время экспедиции по казахской степи описывает загадочные земляные сооружения. Его записки 1772 года — одно из первых письменных упоминаний.</p>
             </div>
           </article>
 
@@ -166,19 +173,19 @@
             <div class="person__body">
               <div class="person__avatar" aria-hidden="true">ДД</div>
               <h3>Дмитрий Дей</h3>
-              <p class="person__role">Экономист из Костаная, археолог-любитель</p>
-              <p>Рассматривая спутниковые снимки Google Earth в поисках древних сооружений, Дмитрий Дей заметил в степи идеальные геометрические фигуры. Так мир узнал о тургайских геоглифах.</p>
-              <p class="person__idea"><span>Гипотеза</span>Фигуры были солнечными календарями: их линии указывали на точки восхода солнца в дни солнцестояний.</p>
+              <p class="person__role" data-i18n="p2.role">Экономист из Костаная, археолог-любитель</p>
+              <p data-i18n="p2.text">Рассматривая спутниковые снимки Google Earth в поисках древних сооружений, Дмитрий Дей заметил в степи идеальные геометрические фигуры. Так мир узнал о тургайских геоглифах.</p>
+              <p class="person__idea" data-i18n="p2.idea"><span>Гипотеза</span>Фигуры были солнечными календарями: их линии указывали на точки восхода солнца в дни солнцестояний.</p>
             </div>
           </article>
 
           <article class="person reveal">
-            <span class="person__year">2010-е</span>
+            <span class="person__year" data-i18n="p3.year">2010-е</span>
             <div class="person__body">
               <div class="person__avatar person__avatar--two" aria-hidden="true"><span>ИШ</span><span>АЛ</span></div>
-              <h3>Ирина Шевнина и Андрей Логвин</h3>
-              <p class="person__role">Археологи КРУ им. А. Байтурсынова</p>
-              <p>Провели раскопки геоглифов и курганов вокруг них: нашли сарматские захоронения и фрагменты керамики. Вместе с зарубежными коллегами выполнили научное датирование насыпей и опубликовали первые научные работы.</p>
+              <h3 data-i18n="p3.name">Ирина Шевнина и Андрей Логвин</h3>
+              <p class="person__role" data-i18n="p3.role">Археологи КРУ им. А. Байтурсынова</p>
+              <p data-i18n="p3.text">Провели раскопки геоглифов и курганов вокруг них: нашли сарматские захоронения и фрагменты керамики. Вместе с зарубежными коллегами выполнили научное датирование насыпей и опубликовали первые научные работы.</p>
             </div>
           </article>
         </div>
@@ -188,36 +195,36 @@
     <!-- 4. Мировой резонанс -->
     <section class="press" id="world-press" data-scene="off">
       <div class="wrap">
-        <p class="eyebrow">Мировой резонанс</p>
-        <h2 class="reveal">О Тургае заговорил<br><em>весь мир</em></h2>
+        <p class="eyebrow" data-i18n="press.eyebrow">Мировой резонанс</p>
+        <h2 class="reveal" data-i18n="press.h">О Тургае заговорил<br><em>весь мир</em></h2>
 
         <div class="desk">
           <figure class="clip clip--nyt reveal">
             <div class="clip__mast">The New York Times</div>
-            <div class="clip__meta"><span>Science</span><span>30 октября 2015</span></div>
+            <div class="clip__meta"><span>Science</span><span data-i18n="nyt.date">30 октября 2015</span></div>
             <blockquote>NASA Adds to Evidence of Mysterious Ancient Earthworks</blockquote>
-            <figcaption>Статья о том, как снимки из космоса подтвердили существование загадочных земляных фигур в Казахстане.</figcaption>
+            <figcaption data-i18n="nyt.cap">Статья о том, как снимки из космоса подтвердили существование загадочных земляных фигур в Казахстане.</figcaption>
           </figure>
 
           <figure class="clip clip--nasa reveal">
             <div class="clip__mast"><span class="nasa-dot"></span>NASA</div>
             <div class="clip__meta"><span>Earth Observatory</span><span>2015</span></div>
-            <blockquote>Съёмка из космоса</blockquote>
-            <figcaption>Спутниковые снимки высокого разрешения, опубликованные NASA, привлекли к геоглифам внимание учёных всего мира.</figcaption>
+            <blockquote data-i18n="nasa.q">Съёмка из космоса</blockquote>
+            <figcaption data-i18n="nasa.cap">Спутниковые снимки высокого разрешения, опубликованные NASA, привлекли к геоглифам внимание учёных всего мира.</figcaption>
           </figure>
 
           <figure class="clip clip--bbc reveal">
             <div class="clip__mast"><i>B</i><i>B</i><i>C</i> News</div>
             <div class="clip__meta"><span>World</span><span></span></div>
-            <blockquote>«Казахстанские Наска»</blockquote>
-            <figcaption>Материал о гигантских фигурах в казахской степи, которые видны только из космоса.</figcaption>
+            <blockquote data-i18n="bbc.q">«Казахстанские Наска»</blockquote>
+            <figcaption data-i18n="bbc.cap">Материал о гигантских фигурах в казахской степи, которые видны только из космоса.</figcaption>
           </figure>
 
           <figure class="clip clip--disc reveal">
             <div class="clip__mast">Discovery</div>
             <div class="clip__meta"><span>Documentary</span><span></span></div>
-            <blockquote>Загадки степи</blockquote>
-            <figcaption>Сюжет о древних геоглифах Тургая и гипотезах их происхождения.</figcaption>
+            <blockquote data-i18n="disc.q">Загадки степи</blockquote>
+            <figcaption data-i18n="disc.cap">Сюжет о древних геоглифах Тургая и гипотезах их происхождения.</figcaption>
           </figure>
         </div>
       </div>
@@ -226,8 +233,8 @@
     <!-- 5. Тест -->
     <section class="quiz" id="quiz" data-scene="off">
       <div class="wrap wrap--narrow">
-        <p class="eyebrow">Проверь себя</p>
-        <h2 class="reveal">Тест<br><em>по экскурсии</em></h2>
+        <p class="eyebrow" data-i18n="quiz.eyebrow">Проверь себя</p>
+        <h2 class="reveal" data-i18n="quiz.h">Тест<br><em>по экскурсии</em></h2>
         <div class="quiz__box" id="quizBox"></div>
       </div>
     </section>
@@ -236,9 +243,9 @@
       <div class="wrap footer__inner">
         <span class="nav__logo">
           <svg viewBox="-12 -12 24 24" aria-hidden="true"><rect x="-9" y="-9" width="18" height="18"/><path d="M-9 -9 9 9M9 -9-9 9"/></svg>
-          Знаки степи
+          <span data-i18n="logo">Знаки степи</span>
         </span>
-        <p>Спутниковые снимки © Esri, Maxar, Earthstar Geographics. Контуры геоглифов нанесены по снимкам; объём насыпей в виде с земли — реконструкция.</p>
+        <p data-i18n="footer">Спутниковые снимки © Esri, Maxar, Earthstar Geographics. Контуры геоглифов нанесены по снимкам; объём насыпей в виде с земли — реконструкция.</p>
       </div>
     </footer>
   </main>

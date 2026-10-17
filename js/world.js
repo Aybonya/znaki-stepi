@@ -164,7 +164,7 @@ const World = (function () {
 
     notes = (g.notes || []).map(n => {
       const e = document.createElement('div');
-      e.innerHTML = `<div class="map-note"><i></i><span>${n.text}</span></div>`;
+      e.innerHTML = `<div class="map-note"><i></i><span data-ru="${n.text}">${I18N.word(n.text)}</span></div>`;
       return new maplibregl.Marker({ element: e, anchor: 'left', offset: [-4, 0] }).setLngLat(toLL(c, n.at)).addTo(map);
     });
 
@@ -393,14 +393,29 @@ const World = (function () {
   }
 
   // ---------- план поездки ----------
-  let trip = null, tripDrawn = false, tripFrame = 0;
-  function setTrip(t) {
+  let trip = null, tripDrawn = false, tripFrame = 0, placeEls = [];
+  function setTrip(t, places) {
     trip = t;
-    trip.places.forEach(p => {
+    placeEls = places.map(p => {
       const el = document.createElement('div');
       el.innerHTML = `<div class="place"><i></i><span><b>${p.name}</b><small>${p.tag}</small></span></div>`;
       new maplibregl.Marker({ element: el, anchor: 'left', offset: [-6, 0] }).setLngLat(p.at).addTo(map);
+      return el;
     });
+  }
+
+  // Смена языка: переписать подписи, не трогая маркеры
+  function relabel(stops, places) {
+    pins.forEach((m, i) => {
+      const b = m.getElement().querySelector('.pin');
+      b.setAttribute('aria-label', stops[i].name);
+      b.querySelector('.pin__label').textContent = stops[i].name;
+    });
+    placeEls.forEach((el, i) => {
+      el.querySelector('b').textContent = places[i].name;
+      el.querySelector('small').textContent = places[i].tag;
+    });
+    notes.forEach(m => { const sp = m.getElement().querySelector('[data-ru]'); sp.textContent = I18N.word(sp.dataset.ru); });
   }
 
   // Маршрут прорисовывается по порядку — от старта до финиша
@@ -666,5 +681,5 @@ const World = (function () {
     if (p) { leaveGround(); stopSpin(); setInteractive(false); scene = 'off'; }
   }
 
-  return { init, setPins, setTrip, showTrip, flyToPlace, prefetchAll, showHero, showIntro, showRoute, showStop, toggleView, rotate, setFigure, explore, pause, getView: () => view };
+  return { init, setPins, setTrip, relabel, showTrip, flyToPlace, prefetchAll, showHero, showIntro, showRoute, showStop, toggleView, rotate, setFigure, explore, pause, getView: () => view };
 })();

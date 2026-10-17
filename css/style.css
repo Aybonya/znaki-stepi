@@ -153,6 +153,22 @@ main { position: relative; z-index: 2; }
   padding: 8px 14px; border-radius: 999px; transition: color .2s, background .2s;
 }
 .nav__links a:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.nav__right { display: flex; align-items: center; gap: 14px; }
+
+/* переключатель языка */
+.lang {
+  position: relative; display: flex; padding: 3px; border-radius: 999px;
+  background: var(--glass); border: 1px solid var(--glass-line);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.lang button {
+  min-width: 46px; padding: 6px 12px; border-radius: 999px;
+  font: 600 12px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  transition: color .25s, background .25s;
+}
+.lang button:hover { color: var(--text); }
+.lang button.on { background: var(--gold); color: var(--ink); }
+.lang button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* ---------- кнопки ---------- */
 .btn {
