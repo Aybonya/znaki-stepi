@@ -65,7 +65,7 @@
       <span data-i18n="logo">Знаки степи</span>
     </a>
     <div class="nav__right">
-      <nav class="nav__links">
+      <nav class="nav__links" id="navLinks">
         <a href="#route" data-i18n="nav.route">Маршрут</a>
         <a href="#stop-1" data-i18n="nav.tour">Экскурсия</a>
         <a href="#trip" data-i18n="nav.trip">Поездка</a>
@@ -77,6 +77,9 @@
         <button data-lang="kk" lang="kk" aria-pressed="true">Қаз</button>
         <button data-lang="ru" lang="ru" aria-pressed="false">Рус</button>
       </div>
+      <button class="nav__menu" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="Меню" data-i18n-aria="menu">
+        <span></span><span></span>
+      </button>
     </div>
   </header>
 

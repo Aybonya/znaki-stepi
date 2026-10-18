@@ -379,6 +379,17 @@
   }
   addEventListener('scroll', () => $('nav').classList.toggle('nav--solid', scrollY > 60), { passive: true });
 
+  // ---------- Меню на телефоне и планшете ----------
+  function setMenu(on) {
+    document.body.classList.toggle('menu-open', on);
+    $('menuBtn').setAttribute('aria-expanded', String(on));
+  }
+  $('menuBtn').addEventListener('click', () => setMenu(!document.body.classList.contains('menu-open')));
+  document.addEventListener('click', e => {
+    if (document.body.classList.contains('menu-open') && (e.target.closest('#navLinks a') || !e.target.closest('#nav'))) setMenu(false);
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
+
   // ---------- Язык ----------
   function render() {
     document.querySelectorAll('#chapters [data-scene], #tripCol [data-scene]').forEach(s => sceneIO.unobserve(s));

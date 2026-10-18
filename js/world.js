@@ -202,8 +202,11 @@ const World = (function () {
   function padding() {
     const w = innerWidth, h = innerHeight;
     if (w > 900) return { left: Math.min(560, w * 0.42), right: 90, top: 90, bottom: 60 };
-    return { left: 20, right: 20, top: 70, bottom: h * 0.35 };
+    return { left: 20, right: 20, top: 120, bottom: h * 0.38 };
   }
+
+  // На телефоне текст главной стоит внизу экрана — глобус поднимаем над ним
+  const heroPad = () => ({ left: 0, right: 0, top: 0, bottom: innerWidth < 700 ? Math.round(innerHeight * 0.34) : 0 });
 
   function fitZoom(size, lat) {
     const p = padding(), avail = Math.min(innerWidth - p.left - p.right, innerHeight - p.top - p.bottom);
@@ -290,6 +293,7 @@ const World = (function () {
       cancelPendingTileRequestsWhileZooming: false,
     });
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+    map.setPadding(heroPad());
     setInteractive(false);
 
     map.on('load', () => {
@@ -448,7 +452,7 @@ const World = (function () {
     leaveGround();
     scene = 'hero'; stop = null; clearFigure(); showPins(false); setLook('night'); setInteractive(false);
     const small = innerWidth < 700;
-    fly({ center: [58, 44], zoom: small ? 0.9 : 1.6, pitch: 0, bearing: 0, padding: { left: 0, right: 0, top: 0, bottom: 0 } }, 3000);
+    fly({ center: [58, 44], zoom: small ? 0.9 : 1.6, pitch: 0, bearing: 0, padding: heroPad() }, 3000);
     map.once('moveend', () => { if (scene === 'hero') startSpin('globe'); });
   }
 
